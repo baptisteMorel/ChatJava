@@ -78,6 +78,9 @@ class ForumServer {
                         case '&':
                             displayHelp();
                             break;
+                        case '%':
+                            send("> Users connected : "+ listClient());
+                            break;
                         default:
                             send("> I don't understand '" + st + "'");
                     }
@@ -85,6 +88,15 @@ class ForumServer {
             } catch (IOException e) {
                 System.err.println(e.getMessage());
             }
+        }
+
+        public String listClient(){
+            String st = "";
+            for (int i = 0; i < clients.size(); i++) {
+                ChatManager gct = (ChatManager) clients.get(i);
+                st += gct.nickname+" ";
+            }
+            return st;
         }
 
         public void close() {
