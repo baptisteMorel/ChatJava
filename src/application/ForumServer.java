@@ -69,12 +69,7 @@ class ForumServer {
                 while ((st = reader.readLine()) != null) {
                     switch (st.charAt(0)) {
                         case '?':
-                            int i = testName(st.substring(2), 1);
-                            if (i==1){
-                                nickname = st.substring(2);
-                            }else{
-                                nickname = st.substring(2) + i;
-                            }
+                            buildNickname(st);
                             send("> Welcome " + nickname);
                             break;
                         case '!':
@@ -95,11 +90,23 @@ class ForumServer {
             }
         }
 
-        public int testName(String inNickname, int j) {
+        private void buildNickname(String st){
+            String tampNickname;
+
+            tampNickname = st.substring(2).replaceAll("\\s", "_");
+
+            int i = findDuplicate(tampNickname, 1);
+            nickname = tampNickname;
+            if (i > 1) {
+                nickname += i;
+            }
+        }
+
+        private int findDuplicate(String inNickname, int j) {
             for (int i = 0; i < clients.size(); i++) {
                 ChatManager gct = (ChatManager) clients.get(i);
                 if ((j == 1 && gct.nickname.equals(inNickname)) || (j != 1 && gct.nickname.equals(inNickname + j))) {
-                    j = testName(inNickname, j + 1);
+                    j = findDuplicate(inNickname, j + 1);
                 }
             }
             return j;
