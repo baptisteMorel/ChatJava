@@ -93,7 +93,7 @@ class ForumServer {
                 while ((st = reader.readLine()) != null) {
                     switch (st.charAt(0)) {
                         case '?':
-                            nickname = st.substring(2) + testName(st.substring(2), 0);
+                            buildNickname(st);
                             send("> Welcome " + nickname);
                             break;
                         case '!':
@@ -120,17 +120,23 @@ class ForumServer {
             }
         }
 
-        /**
-         * Test if the nickname is already used. If it is, make a recursive call with an incremented prefix.
-         * @param inNickname : the nickname to test
-         * @param j : the prefix 
-         * @return the number to be added to the nickname
-         */
-        public int testName(String inNickname, int j) {
+        private void buildNickname(String st){
+            String tampNickname;
+
+            tampNickname = st.substring(2).replaceAll("\\s", "_");
+
+            int i = findDuplicate(tampNickname, 1);
+            nickname = tampNickname;
+            if (i > 1) {
+                nickname += i;
+            }
+        }
+
+        private int findDuplicate(String inNickname, int j) {
             for (int i = 0; i < clients.size(); i++) {
                 ChatManager gct = (ChatManager) clients.get(i);
-                if (gct.nickname.equals(inNickname + j)) {
-                    j = testName(inNickname, j + 1);
+                if ((j == 1 && gct.nickname.equals(inNickname)) || (j != 1 && gct.nickname.equals(inNickname + j))) {
+                    j = findDuplicate(inNickname, j + 1);
                 }
             }
             return j;
