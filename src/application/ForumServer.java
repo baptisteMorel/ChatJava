@@ -49,6 +49,7 @@ class ForumServer {
 
         /**
          * Send a message to the user
+         *
          * @param mess : the message to forward
          */
         public void send(String mess) {            // Send the given message to the client
@@ -57,9 +58,10 @@ class ForumServer {
 
         /**
          * Find specified user with his nickname. If applicable, call the send method with the message
-         * @param mess : the message to send
+         *
+         * @param mess       : the message to send
          * @param fromPseudo : the nickname of the user who wants to send a message
-         * @param toPseudo : the nickname of the recipient user
+         * @param toPseudo   : the nickname of the recipient user
          */
         public void sendTo(String mess, String fromPseudo, String toPseudo) {
             for (int i = 0; i < clients.size(); i++) {
@@ -70,9 +72,10 @@ class ForumServer {
                 }
             }
         }
-        
+
         /**
          * For each user, call the send method with the message to broadcat
+         *
          * @param mess : The message to broadcast
          */
         public void broadcast(String mess) {    // Send the given message to all the connected users
@@ -93,11 +96,12 @@ class ForumServer {
                 while ((st = reader.readLine()) != null) {
                     switch (st.charAt(0)) {
                         case '?':
-                            if(st.substring(1).trim().equals(""))       //don't rename if empty string
+                            String oldNickname = nickname;
+                            if (st.substring(1).trim().equals(""))       //don't rename if empty string
                                 send("Invalid nickname, please try again");
-                            else
-                            {
+                            else {
                                 buildNickname(st);
+                                broadcast("-info- "+ oldNickname + " vient de se renommer en " + nickname);
                                 send("> Welcome " + nickname);
                             }
                             break;
@@ -112,7 +116,7 @@ class ForumServer {
                             break;
                         case '@':
                             String cleanInput = st.substring(2).trim().replaceAll(" +", " ");       //the string containing the name of the recipient and the message, cleaned.
-                            int indexBeforeMessage = cleanInput.indexOf(" "); 
+                            int indexBeforeMessage = cleanInput.indexOf(" ");
                             String[] splitedMessage = st.split(" ");
                             sendTo(cleanInput.substring(indexBeforeMessage + 1), nickname, cleanInput.substring(0, indexBeforeMessage));
                             break;
@@ -128,9 +132,10 @@ class ForumServer {
 
         /**
          * Clean the nickname (whitespaces, communication codes and conflict case)
+         *
          * @param st : a command like "? nickname'
          */
-        private void buildNickname(String st){
+        private void buildNickname(String st) {
             String tempNickname;
 
             tempNickname = st.substring(2).replaceAll("\\s", "_");
@@ -144,8 +149,9 @@ class ForumServer {
 
         /**
          * Search if anyone use the same nickname
+         *
          * @param inNickname : the cleaned nickname
-         * @param j : the initial number to increment (1)
+         * @param j          : the initial number to increment (1)
          * @return : the number to concat with the nickname if necessary (1 if not)
          */
         private int findDuplicate(String inNickname, int j) {
@@ -160,6 +166,7 @@ class ForumServer {
 
         /**
          * Find the nickname of each user and put them in a string
+         *
          * @return a string containing the nickname of all the connected users
          */
         public String listClient() {
@@ -210,12 +217,14 @@ class ForumServer {
         try {
             while (true) {
                 Socket userSock = sock.accept();
-                String userName = userSock.getInetAddress().getHostName();
-                ChatManager user = new ChatManager(userSock, userName);
+                String userIP = userSock.getInetAddress().getHostName();
+                ChatManager user = new ChatManager(userSock, userIP);
                 synchronized (clients) {
                     clients.add(user);
                     user.start();
                     //user.send(userName + " : client " + clients.size() + " is on line");
+                    user.broadcast("-info- "+ userIP + " vient de se connecter " +
+                            "("+ clients.size() + " utilisateur(s) connecté(s)");
                     user.send("to display the help, type \"&\"");
                     user.send("First, enter you nickname prefixed by \"? \"");
                 }
