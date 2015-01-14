@@ -69,7 +69,12 @@ class ForumServer {
                 while ((st = reader.readLine()) != null) {
                     switch (st.charAt(0)) {
                         case '?':
-                            nickname = st.substring(2) + testName(st.substring(2), 0);
+                            int i = testName(st.substring(2), 1);
+                            if (i==1){
+                                nickname = st.substring(2);
+                            }else{
+                                nickname = st.substring(2) + i;
+                            }
                             send("> Welcome " + nickname);
                             break;
                         case '!':
@@ -93,8 +98,8 @@ class ForumServer {
         public int testName(String inNickname, int j) {
             for (int i = 0; i < clients.size(); i++) {
                 ChatManager gct = (ChatManager) clients.get(i);
-                if (gct.nickname.equals(inNickname+j)){
-                    j = testName(inNickname, j+1);
+                if ((j == 1 && gct.nickname.equals(inNickname)) || (j != 1 && gct.nickname.equals(inNickname + j))) {
+                    j = testName(inNickname, j + 1);
                 }
             }
             return j;
