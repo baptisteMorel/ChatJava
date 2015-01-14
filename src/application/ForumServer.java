@@ -31,9 +31,9 @@ class ForumServer {
     class ChatManager extends Thread {
 
         Socket sockC;                            // Client socket
-        BufferedReader reader;                                          // Reader on client socket
-        PrintWriter writer;                        // Writer on client socket
-        String clientIP;                        // Client machine
+        BufferedReader reader;                   // Reader on client socket
+        PrintWriter writer;                      // Writer on client socket
+        String clientIP;                         // Client machine
         String nickname = "unknown";
 
         ChatManager(Socket sk, String ip) {
@@ -47,10 +47,34 @@ class ForumServer {
             }
         }
 
+        /**
+         * Send a message to the user
+         * @param mess : the message to forward
+         */
         public void send(String mess) {            // Send the given message to the client
             writer.println(mess);
         }
 
+        /**
+         * Find specified user with his nickname. If applicable, call the send method with the message
+         * @param mess : the message to send
+         * @param fromPseudo : the nickname of the user who wants to send a message
+         * @param toPseudo : the nickname of the recipient user
+         */
+        public void sendTo(String mess, String fromPseudo, String toPseudo) {
+            for (int i = 0; i < clients.size(); i++) {
+                ChatManager gct = (ChatManager) clients.get(i);
+                if (gct.nickname.equals(toPseudo)) {
+                    gct.send("Private message from " + fromPseudo + " >" + mess);
+                    break;                         //pas besoin de terminer la boucle
+                }
+            }
+        }
+        
+        /**
+         * For each user, call the send method with the message to broadcat
+         * @param mess : The message to broadcast
+         */
         public void broadcast(String mess) {    // Send the given message to all the connected users
             synchronized (clients) {
                 for (int i = 0; i < clients.size(); i++) {
@@ -81,6 +105,12 @@ class ForumServer {
                         case '%':
                             send("> Users connected : " + listClient());
                             break;
+                        case '@':
+                            String cleanInput = st.substring(2).trim().replaceAll(" +", " ");       //the string containing the name of the recipient and the message, cleaned.
+                            int indexBeforeMessage = cleanInput.indexOf(" "); 
+                            String[] splitedMessage = st.split(" ");
+                            sendTo(cleanInput.substring(indexBeforeMessage+1), nickname, cleanInput.substring(0, indexBeforeMessage));
+                            break;
                         default:
                             send("> I don't understand '" + st + "'");
                     }
@@ -90,16 +120,26 @@ class ForumServer {
             }
         }
 
+        /**
+         * Test if the nickname is already used. If it is, make a recursive call with an incremented prefix.
+         * @param inNickname : the nickname to test
+         * @param j : the prefix 
+         * @return the number to be added to the nickname
+         */
         public int testName(String inNickname, int j) {
             for (int i = 0; i < clients.size(); i++) {
                 ChatManager gct = (ChatManager) clients.get(i);
-                if (gct.nickname.equals(inNickname+j)){
-                    j = testName(inNickname, j+1);
+                if (gct.nickname.equals(inNickname + j)) {
+                    j = testName(inNickname, j + 1);
                 }
             }
             return j;
         }
 
+        /**
+         * Find the nickname of each user and put them in a string
+         * @return a string containing the nickname of all the connected users
+         */
         public String listClient() {
             String st = "";
             for (int i = 0; i < clients.size(); i++) {
