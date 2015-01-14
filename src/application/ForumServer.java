@@ -8,8 +8,8 @@ class ForumServer {
 
     ServerSocket sock;
     int port = 7777;
-    final static String Id = "Chatterbox";		// Chat server name
-    ArrayList clients;				// Users on line (each user is represented by a ChatManager object)
+    final static String Id = "Chatterbox";        // Chat server name
+    ArrayList clients;                // Users on line (each user is represented by a ChatManager object)
 
     /*	***********	*/
     /*	CONSTRUCTOR	*/
@@ -30,11 +30,11 @@ class ForumServer {
     /*	***************	*/
     class ChatManager extends Thread {
 
-        Socket sockC;							// Client socket
+        Socket sockC;                            // Client socket
         BufferedReader reader;                                          // Reader on client socket
-        PrintWriter writer;						// Writer on client socket
-        String clientIP;						// Client machine
-        String nickname = "";
+        PrintWriter writer;                        // Writer on client socket
+        String clientIP;                        // Client machine
+        String nickname = "unknow";
 
         ChatManager(Socket sk, String ip) {
             sockC = sk;
@@ -47,11 +47,11 @@ class ForumServer {
             }
         }
 
-        public void send(String mess) {			// Send the given message to the client
+        public void send(String mess) {            // Send the given message to the client
             writer.println(mess);
         }
 
-        public void broadcast(String mess) {	// Send the given message to all the connected users
+        public void broadcast(String mess) {    // Send the given message to all the connected users
             synchronized (clients) {
                 for (int i = 0; i < clients.size(); i++) {
                     ChatManager gct = (ChatManager) clients.get(i);
@@ -63,23 +63,23 @@ class ForumServer {
         }
 
         @Override
-        public void run() {						// Regular activity (as a thread): treat the command received from the client
+        public void run() {                        // Regular activity (as a thread): treat the command received from the client
             String st;
             try {
                 while ((st = reader.readLine()) != null) {
                     switch (st.charAt(0)) {
                         case '?':
-                            nickname = st.substring(2);
+                            nickname = st.substring(2) + testName(st.substring(2), 0);
                             send("> Welcome " + nickname);
                             break;
                         case '!':
-                            broadcast(nickname+"> " + st.substring(2));
+                            broadcast(nickname + "> " + st.substring(2));
                             break;
                         case '&':
                             displayHelp();
                             break;
                         case '%':
-                            send("> Users connected : "+ listClient());
+                            send("> Users connected : " + listClient());
                             break;
                         default:
                             send("> I don't understand '" + st + "'");
@@ -90,11 +90,23 @@ class ForumServer {
             }
         }
 
-        public String listClient(){
+        public int testName(String inNickname, int j) {
+            for (int i = 0; i < clients.size(); i++) {
+                ChatManager gct = (ChatManager) clients.get(i);
+                if (gct.nickname.equals(inNickname+j)){
+                    j = testName(inNickname, j+1);
+                }
+            }
+            return j;
+        }
+
+        public String listClient() {
             String st = "";
             for (int i = 0; i < clients.size(); i++) {
                 ChatManager gct = (ChatManager) clients.get(i);
-                st += gct.nickname+" ";
+                if (gct != null) {
+                    st += gct.nickname + " ";
+                }
             }
             return st;
         }
@@ -119,7 +131,7 @@ class ForumServer {
             help.append("? name : rename the user with this new name and let all know\n");
             help.append("& : display help on communication codes\n");
             help.append("% : display the names of all the users that are currently connected\n");
-            
+
             send(help.toString());
         }
     }
