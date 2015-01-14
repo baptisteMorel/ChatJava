@@ -109,7 +109,7 @@ class ForumServer {
                             String cleanInput = st.substring(2).trim().replaceAll(" +", " ");       //the string containing the name of the recipient and the message, cleaned.
                             int indexBeforeMessage = cleanInput.indexOf(" "); 
                             String[] splitedMessage = st.split(" ");
-                            sendTo(cleanInput.substring(indexBeforeMessage+1), nickname, cleanInput.substring(0, indexBeforeMessage));
+                            sendTo(cleanInput.substring(indexBeforeMessage + 1), nickname, cleanInput.substring(0, indexBeforeMessage));
                             break;
                         default:
                             send("> I don't understand '" + st + "'");
@@ -120,6 +120,11 @@ class ForumServer {
             }
         }
 
+
+        /**
+         * Clean the nickname (whitespaces, communication codes and conflict case)
+         * @param st : a command like "? nickname'
+         */
         private void buildNickname(String st){
             String tampNickname;
 
@@ -132,6 +137,12 @@ class ForumServer {
             }
         }
 
+        /**
+         * Search if anyone use the same nickname
+         * @param inNickname : the cleaned nickname
+         * @param j : the initial number to increment (1)
+         * @return : the number to concat with the nickname if necessary (1 if not)
+         */
         private int findDuplicate(String inNickname, int j) {
             for (int i = 0; i < clients.size(); i++) {
                 ChatManager gct = (ChatManager) clients.get(i);
