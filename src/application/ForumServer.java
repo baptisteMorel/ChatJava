@@ -34,7 +34,7 @@ class ForumServer {
         BufferedReader reader;                                          // Reader on client socket
         PrintWriter writer;                        // Writer on client socket
         String clientIP;                        // Client machine
-        String nickname = "unknow";
+        String nickname = "unknown";
 
         ChatManager(Socket sk, String ip) {
             sockC = sk;
