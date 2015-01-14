@@ -93,8 +93,13 @@ class ForumServer {
                 while ((st = reader.readLine()) != null) {
                     switch (st.charAt(0)) {
                         case '?':
-                            buildNickname(st);
-                            send("> Welcome " + nickname);
+                            if(st.substring(1).trim().equals(""))       //don't rename if empty string
+                                send("Invalid nickname, please try again");
+                            else
+                            {
+                                buildNickname(st);
+                                send("> Welcome " + nickname);
+                            }
                             break;
                         case '!':
                             broadcast(nickname + "> " + st.substring(2));
@@ -121,12 +126,12 @@ class ForumServer {
         }
 
         private void buildNickname(String st){
-            String tampNickname;
+            String tempNickname;
 
-            tampNickname = st.substring(2).replaceAll("\\s", "_");
+            tempNickname = st.substring(2).replaceAll("\\s", "_");
 
-            int i = findDuplicate(tampNickname, 1);
-            nickname = tampNickname;
+            int i = findDuplicate(tempNickname, 1);
+            nickname = tempNickname;
             if (i > 1) {
                 nickname += i;
             }
@@ -199,7 +204,7 @@ class ForumServer {
                 synchronized (clients) {
                     clients.add(user);
                     user.start();
-                    user.send(userName + " : client " + clients.size() + " is on line");
+                    //user.send(userName + " : client " + clients.size() + " is on line");
                     user.send("to display the help, type \"&\"");
                     user.send("First, enter you nickname prefixed by \"? \"");
                 }
