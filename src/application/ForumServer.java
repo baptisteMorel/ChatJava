@@ -57,17 +57,22 @@ class ForumServer {
         }
 
         /**
-         * Find specified user with his nickname. If applicable, call the send method with the message
+         * Find specified user with his nickname. If applicable, call the send
+         * method with the message
          *
-         * @param mess       : the message to send
-         * @param fromPseudo : the nickname of the user who wants to send a message
-         * @param toPseudo   : the nickname of the recipient user
+         * @param mess : the message to send
+         * @param fromPseudo : the nickname of the user who wants to send a
+         * message
+         * @param toPseudo : the nickname of the recipient user
          */
-        public void sendTo(String mess, String fromPseudo, String toPseudo) {
+        private void sendTo(String mess, String fromPseudo, String toPseudo) throws NullPointerException {
+            if (mess == null || fromPseudo == null || toPseudo == null) {
+                throw new NullPointerException("Parameters musn't be null");
+            }
             for (int i = 0; i < clients.size(); i++) {
                 ChatManager gct = (ChatManager) clients.get(i);
                 if (gct.nickname.equals(toPseudo)) {
-                    gct.send("Private message from " + fromPseudo + " >" + mess);
+                    gct.send("Private message from " + fromPseudo + "> " + mess);
                     break;                         //pas besoin de terminer la boucle
                 }
             }
@@ -97,12 +102,12 @@ class ForumServer {
                     switch (st.charAt(0)) {
                         case '?':
                             String oldNickname = nickname;
-                            if (st.substring(1).trim().equals(""))       //don't rename if empty string
+                            if (st.substring(1).trim().equals("")) //don't rename if empty string
+                            {
                                 send("Invalid nickname, please try again");
-                            else {
+                            } else {
                                 buildNickname(st);
-                                broadcast("-info- "+ oldNickname + " vient de se renommer en " + nickname);
-                                send("> Welcome " + nickname);
+                                broadcast("-info- " + oldNickname + " is now known under the name of " + nickname);
                             }
                             break;
                         case '!':
@@ -115,10 +120,7 @@ class ForumServer {
                             send("> Users connected : " + listClient());
                             break;
                         case '@':
-                            String cleanInput = st.substring(2).trim().replaceAll(" +", " ");       //the string containing the name of the recipient and the message, cleaned.
-                            int indexBeforeMessage = cleanInput.indexOf(" ");
-                            String[] splitedMessage = st.split(" ");
-                            sendTo(cleanInput.substring(indexBeforeMessage + 1), nickname, cleanInput.substring(0, indexBeforeMessage));
+                            checkBeforeSendTo(st);
                             break;
                         default:
                             send("> I don't understand '" + st + "'");
@@ -129,16 +131,16 @@ class ForumServer {
             }
         }
 
-
         /**
-         * Clean the nickname (whitespaces, communication codes and conflict case)
+         * Clean the nickname (whitespaces, communication codes and conflict
+         * case)
          *
-         * @param st : a command like "? nickname'
+         * @param st : a command like "? nickname"
          */
         private void buildNickname(String st) {
             String tempNickname;
 
-            tempNickname = st.substring(2).replaceAll("\\s", "_");
+            tempNickname = st.substring(2).replaceAll("\\s", "_");      //\\s corresponds to " "
 
             int i = findDuplicate(tempNickname, 1);
             nickname = tempNickname;
@@ -151,8 +153,9 @@ class ForumServer {
          * Search if anyone use the same nickname
          *
          * @param inNickname : the cleaned nickname
-         * @param j          : the initial number to increment (1)
-         * @return : the number to concat with the nickname if necessary (1 if not)
+         * @param j : the initial number to increment (1)
+         * @return : the number to concat with the nickname if necessary (1 if
+         * not)
          */
         private int findDuplicate(String inNickname, int j) {
             for (int i = 0; i < clients.size(); i++) {
@@ -169,7 +172,7 @@ class ForumServer {
          *
          * @return a string containing the nickname of all the connected users
          */
-        public String listClient() {
+        private String listClient() {
             String st = "";
             for (int i = 0; i < clients.size(); i++) {
                 ChatManager gct = (ChatManager) clients.get(i);
@@ -192,7 +195,7 @@ class ForumServer {
             }
         }
 
-        public void displayHelp() {
+        private void displayHelp() {
             StringBuilder help = new StringBuilder();
             help.append("HELP : \n");
             help.append("! message : broadcast message headed by sender's name\n");
@@ -202,6 +205,55 @@ class ForumServer {
             help.append("% : display the names of all the users that are currently connected\n");
 
             send(help.toString());
+        }
+
+        /**
+         * Check if a user responds to the nickname passed as a parameter
+         *
+         * @param recipient : the nickname to test
+         * @return
+         */
+        private boolean checkIfExist(String recipient) {
+            boolean exists = false;
+            for (int i = 0; i < clients.size(); i++) {
+                ChatManager gct = (ChatManager) clients.get(i);
+                if (gct.nickname.equals(recipient)) {
+                    exists = true;
+                    break;
+                }
+            }
+            return exists;
+        }
+
+        /**
+         * Clean the sendTo command
+         * @param st : the command containing the recipient, the message
+         */
+        private void checkBeforeSendTo(String st) {
+            String cleanInput = st.substring(2).trim().replaceAll(" +", " ");       //the string containing the name of the recipient and the message, cleaned.
+            int indexBeforeMessage = cleanInput.indexOf(" ");
+            if (-1 != indexBeforeMessage) {
+                String recipient = cleanInput.substring(0, indexBeforeMessage);
+                if (checkIfExist(recipient)) {
+                    if (nickname.equals(recipient)) {
+                        send("You are " + nickname);
+                    } else {
+                        String message = cleanInput.substring(indexBeforeMessage + 1);
+                        try {
+                            sendTo(message, nickname, recipient);
+                            send(nickname + " to " + recipient + "> " + message);    //the sender must read what he sends
+                        } catch (NullPointerException npe) {
+                            System.out.println(npe.getMessage());
+                        } catch (Exception e) {
+                            System.out.println(e.getMessage());
+                        }
+                    }
+                } else {
+                    send("-info- The nickname " + recipient + " doesn't exist!");
+                }
+            } else {
+                send("-info- Please respect the formalism : @ name message");
+            }
         }
     }
 
@@ -223,8 +275,8 @@ class ForumServer {
                     clients.add(user);
                     user.start();
                     //user.send(userName + " : client " + clients.size() + " is on line");
-                    user.broadcast("-info- "+ userIP + " vient de se connecter " +
-                            "("+ clients.size() + " utilisateur(s) connecté(s)");
+                    user.broadcast("-info- " + userIP + " is connected "
+                            + "(" + clients.size() + " connected user(s))");
                     user.send("to display the help, type \"&\"");
                     user.send("First, enter you nickname prefixed by \"? \"");
                 }

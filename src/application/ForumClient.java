@@ -7,26 +7,25 @@ import java.net.*;
 import java.io.*;
 
 public class ForumClient extends Applet {
-
-    Socket sock;								// Chat socket
+    Socket sock;							// Chat socket
     static int port = 7777;						// Chat port
     boolean connected;							// Connection state
     BufferedReader reader;						// Reader on socket
     PrintWriter writer;							// Writer on socket
 
-    Frame window;								// Chatting framework
-    final static String title = "CHAT AREA";	// Forum title
+    Frame window;							// Chatting framework
+    final static String title = "CHAT AREA";                            // Forum title
     TextField myText;							// User's text zone
-    int myTextDimension = 40;					// Maximal length for user's text
-    TextArea chat;								// Chat display zone
-    String message;								// Screen message
+    int myTextDimension = 40;                                           // Maximal length for user's text
+    TextArea chat;							// Chat display zone
+    String message;							// Screen message
     int messBeg = 10;							// Messaging starting column
-    final static String police = "Monospaced";	// Characters type
-    int size = 11;								// Characters size
+    final static String police = "Monospaced";                          // Characters type
+    int size = 11;							// Characters size
 
     Button logInButton;							// Log in button
     Button logOutButton;						// Log out button
-    Panel pan = new Panel();					// Buttons supporting panel
+    Panel pan = new Panel();                                            // Buttons supporting panel
 
     Dimension screenSize;						// Screen dimension
     Dimension frameSize;						// Dimension of the chatting frame
