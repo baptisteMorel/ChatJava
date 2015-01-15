@@ -111,7 +111,7 @@ class ForumServer {
                             }
                             break;
                         case '!':
-                            broadcast(nickname + "> " + st.substring(2));
+                            broadcast(nickname + "> " + st.substring(1).trim());
                             break;
                         case '&':
                             displayHelp();
@@ -126,6 +126,10 @@ class ForumServer {
                             send("> I don't understand '" + st + "'");
                     }
                 }
+                //when the socket client closed, we can delete the ChatManager
+                close();
+                removeChatManager();
+                broadcast(nickname + " is logout. (" + clients.size() + " user(s) connected)");
             } catch (IOException e) {
                 System.err.println(e.getMessage());
             }
@@ -183,6 +187,9 @@ class ForumServer {
             return st;
         }
 
+        /**
+         * Close the client socket
+         */
         public void close() {
             if (sockC == null) {
                 return;
@@ -195,6 +202,22 @@ class ForumServer {
             }
         }
 
+        /**
+         * Remove the object chatManager from the array of chatManager
+         */
+        private void removeChatManager() {
+            for (int i = 0; i < clients.size(); i++) {
+                ChatManager gct = (ChatManager) clients.get(i);
+                if (gct.equals(this)) {
+                    clients.remove(i);
+                    break;
+                }
+            }
+        }
+
+        /**
+         * Send the help to the user
+         */
         private void displayHelp() {
             StringBuilder help = new StringBuilder();
             help.append("HELP : \n");
@@ -227,10 +250,11 @@ class ForumServer {
 
         /**
          * Clean the sendTo command
+         *
          * @param st : the command containing the recipient, the message
          */
         private void checkBeforeSendTo(String st) {
-            String cleanInput = st.substring(2).trim().replaceAll(" +", " ");       //the string containing the name of the recipient and the message, cleaned.
+            String cleanInput = st.substring(1).trim().replaceAll(" +", " ");       //the string containing the name of the recipient and the message, cleaned.
             int indexBeforeMessage = cleanInput.indexOf(" ");
             if (-1 != indexBeforeMessage) {
                 String recipient = cleanInput.substring(0, indexBeforeMessage);

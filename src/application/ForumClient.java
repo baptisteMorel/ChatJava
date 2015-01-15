@@ -33,6 +33,7 @@ public class ForumClient extends Applet {
     /*	*******************************	*/
     /*	DEFINING THE FORUM FRAMEWORK	*/
     /*	*******************************	*/
+    @Override
     public void init() {
         window = new Frame(title);
         window.setLayout(new BorderLayout());
@@ -98,7 +99,7 @@ public class ForumClient extends Applet {
     /*	***********************	*/
     /*	IN AND OUT OF THE FORUM	*/
     /*	***********************	*/
-    public void login() {
+    private void login() {
         if (connected) {
             return;
         }
@@ -126,7 +127,7 @@ public class ForumClient extends Applet {
         }).start();
     }
 
-    public void logout() {
+    private void logout() {
         if (!connected) {
             return;
         }
@@ -140,6 +141,7 @@ public class ForumClient extends Applet {
         }
     }
 
+    @Override
     public void paint(Graphics g) {
         g.fillRect(0, 0, screenSize.width, screenSize.height);
         g.setColor(Color.black);
